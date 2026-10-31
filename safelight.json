@@ -1,0 +1,13 @@
+{
+  "id": "safelight.accessibility",
+  "name": "Accessibility",
+  "version": "1.0.0",
+  "description": "High-contrast and colour-vision overlays, larger text and controls, reduced motion and transparency, OS-preference sync, and opt-in keyboard editing for the canvas tools. Disable to remove all of these — the app stays screen-reader navigable either way.",
+  "author": "Anthony Reimche",
+  "main": "dist/index.js",
+  "license": "GPL-3.0-only",
+  "categories": ["theme"],
+  "keywords": ["accessibility", "a11y", "high contrast", "colour blind", "larger text", "reduced motion", "keyboard"],
+  "repository": "anthonyreimche/Accessibility",
+  "minAppVersion": "3.2.0"
+}
