@@ -17,11 +17,11 @@ import { accessibilityCss } from "./styles";
 export const STYLESHEET_ID = "safelight.accessibility.styles";
 
 export const SETTINGS_KEYWORDS = [
-  "a11y", "wcag", "contrast", "vision", "colour blind", "color blind",
+  "a11y", "wcag", "contrast", "vision", "colour blind", "colour blind",
   "colorblind", "protanopia", "deuteranopia", "tritanopia", "focus",
   "zoom", "magnify", "scale", "legible", "readable", "text size",
   "font size", "uppercase", "caps", "hit target", "transparency",
-  "opacity", "motion", "system", "os", "prefers", "forced colors",
+  "opacity", "motion", "system", "os", "prefers", "forced colours",
   "high contrast mode", "keyboard",
 ];
 

@@ -14,7 +14,8 @@
 import { React, api } from "./rt";
 import { CLASSES } from "./styles";
 
-export const OVERRIDE_FIELDS: { var: string; label: string; text?: boolean }[] = [
+/** A text field's contrast is measured against `against` (worst of them), else the panel background. */
+export const OVERRIDE_FIELDS: { var: string; label: string; text?: boolean; against?: string[] }[] = [
   { var: "--color-surface-0", label: "Background — base" },
   { var: "--color-surface-1", label: "Background — panels" },
   { var: "--color-surface-2", label: "Background — raised" },
@@ -28,7 +29,16 @@ export const OVERRIDE_FIELDS: { var: string; label: string; text?: boolean }[] =
   { var: "--color-accent", label: "Accent" },
   { var: "--color-accent-hover", label: "Accent — hover" },
   { var: "--color-slider-fill", label: "Controls / selection" },
+  {
+    var: "--color-on-accent",
+    label: "Text — on accent",
+    text: true,
+    against: ["--color-slider-fill", "--color-accent"],
+  },
 ];
+
+/** What the core draws for a token a theme leaves unset, mirroring its index.css defaults. */
+const CORE_DEFAULTS: Record<string, string> = { "--color-on-accent": "#ffffff" };
 
 /** Parse #rgb / #rrggbb (with or without #) → {r,g,b} 0..255, or null. */
 function parseHex(raw: string): { r: number; g: number; b: number } | null {
@@ -50,7 +60,7 @@ function parseHex(raw: string): { r: number; g: number; b: number } | null {
   return null;
 }
 
-/** Normalise any accepted hex spelling to #rrggbb, or null if invalid. */
+/** Normalize any accepted hex spelling to #rrggbb, or null if invalid. */
 export function normalizeHex(raw: string): string | null {
   const c = parseHex(raw);
   if (!c) return null;
@@ -78,6 +88,16 @@ export function contrastRatio(a: string, b: string): number | null {
   return (hi + 0.05) / (lo + 0.05);
 }
 
+function unsetValue(k: string): string {
+  const computed = normalizeHex(getComputedStyle(document.documentElement).getPropertyValue(k));
+  return computed ?? CORE_DEFAULTS[k] ?? "";
+}
+
+function worstContrast(text: string, fills: string[], panel: string): number | null {
+  const ratios = (fills.length > 0 ? fills : [panel]).map((fill) => contrastRatio(text, fill));
+  return ratios.some((x) => x == null) ? null : Math.min(...(ratios as number[]));
+}
+
 export function ColorOverrides() {
   const themes = api.registry.use((s) => s.themes);
   const activeId = api.stores.useThemeStore((s) => s.activeId);
@@ -88,7 +108,7 @@ export function ColorOverrides() {
   const ov = overridesAll[activeId] ?? {};
   const anyOverridden = Object.keys(ov).length > 0;
 
-  const effective = (k: string): string => ov[k] ?? themeVars[k] ?? "";
+  const effective = (k: string): string => ov[k] ?? themeVars[k] ?? unsetValue(k);
   const surface1 = effective("--color-surface-1");
 
   const setOverride = (k: string, hex: string) => {
@@ -135,7 +155,8 @@ export function ColorOverrides() {
             label={f.label}
             value={effective(f.var)}
             overridden={ov[f.var] != null}
-            contrast={f.text ? contrastRatio(effective(f.var), surface1) : null}
+            contrast={f.text ? worstContrast(effective(f.var), (f.against ?? []).map(effective), surface1) : null}
+            against={f.against ? "both fills it sits on" : "the panel background"}
             onSet={(hex) => setOverride(f.var, hex)}
             onClear={() => clearOverride(f.var)}
           />
@@ -150,6 +171,7 @@ function ColorRow({
   value,
   overridden,
   contrast,
+  against,
   onSet,
   onClear,
 }: {
@@ -157,6 +179,7 @@ function ColorRow({
   value: string;
   overridden: boolean;
   contrast: number | null;
+  against: string;
   onSet: (hex: string) => void;
   onClear: () => void;
 }) {
@@ -181,7 +204,7 @@ function ColorRow({
       {contrast != null && (
         <span
           className={`${CLASSES.contrast} ${aaPass ? CLASSES.contrastPass : CLASSES.contrastFail}`}
-          title={`Contrast against the panel background (WCAG AA needs 4.5:1)`}
+          title={`Contrast against ${against} (WCAG AA needs 4.5:1)`}
         >
           {contrast.toFixed(1)}:1 {aaPass ? "✓" : "✗"}
         </span>

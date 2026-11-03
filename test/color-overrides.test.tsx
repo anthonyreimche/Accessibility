@@ -25,7 +25,7 @@ const picker = (label: string) => screen.getByLabelText<HTMLInputElement>(`${lab
 const clear = (label: string) => screen.getByLabelText<HTMLButtonElement>(`Reset ${label} to the theme default`);
 
 describe("hex helpers", () => {
-  it("normalises #rgb and rrggbb spellings and rejects the rest", () => {
+  it("normalizes #rgb and rrggbb spellings and rejects the rest", () => {
     expect(normalizeHex("#ABC")).toBe("#aabbcc");
     expect(normalizeHex(" 1a2B3c ")).toBe("#1a2b3c");
     expect(normalizeHex("#12345")).toBeNull();
@@ -52,19 +52,54 @@ describe("ColorOverrides", () => {
     expect(screen.queryByRole("button", { name: "Reset all" })).toBeNull();
   });
 
-  it("shows contrast against the panel background on the text rows only", () => {
+  it("shows contrast on the text rows only: panel text against the panel, on-accent text against both fills", () => {
     mount();
     const ratios = [...document.querySelectorAll(`.${CLASSES.contrast}`)];
-    expect(ratios).toHaveLength(3);
+    expect(ratios).toHaveLength(4);
     const primary = contrastRatio("#e8e8e8", "#222222") ?? 0;
     const muted = contrastRatio("#6a6a6a", "#222222") ?? 0;
     expect(ratios[0].textContent).toBe(`${primary.toFixed(1)}:1 ✓`);
     expect(ratios[0].classList.contains(CLASSES.contrastPass)).toBe(true);
     expect(ratios[2].textContent).toBe(`${muted.toFixed(1)}:1 ✗`);
     expect(ratios[2].classList.contains(CLASSES.contrastFail)).toBe(true);
+    const onAccent = Math.min(contrastRatio("#ffffff", "#2e2e2e") ?? 0, contrastRatio("#ffffff", "#333333") ?? 0);
+    expect(ratios[3].textContent).toBe(`${onAccent.toFixed(1)}:1 ✓`);
   });
 
-  it("saves a typed hex on Enter, normalised, for the active theme only", () => {
+  it("shows the core's value for a token the theme doesn't set, not a blank or black", () => {
+    mount();
+    expect(hex("Text — on accent").value).toBe("#ffffff");
+    expect(picker("Text — on accent").value).toBe("#ffffff");
+    expect(clear("Text — on accent").disabled).toBe(true);
+  });
+
+  it("prefers the value the page actually computes for a token the theme doesn't set", () => {
+    document.documentElement.style.setProperty("--color-on-accent", "#102030");
+    try {
+      mount();
+      expect(hex("Text — on accent").value).toBe("#102030");
+    } finally {
+      document.documentElement.style.removeProperty("--color-on-accent");
+    }
+  });
+
+  it("lets a user fix white button text on a light accent, re-measuring against both fills", () => {
+    const rig = mount();
+    const badge = () => [...document.querySelectorAll(`.${CLASSES.contrast}`)][3];
+    fireEvent.change(hex("Accent"), { target: { value: "#f0c060" } });
+    fireEvent.blur(hex("Accent"));
+    expect(badge().textContent).toMatch(/✗$/);
+    fireEvent.change(hex("Text — on accent"), { target: { value: "#000000" } });
+    fireEvent.keyDown(hex("Text — on accent"), { key: "Enter" });
+    expect(rig.settings.getState().colorOverrides[NEUTRAL.id]).toEqual({
+      "--color-accent": "#f0c060",
+      "--color-on-accent": "#000000",
+    });
+    const worst = Math.min(contrastRatio("#000000", "#f0c060") ?? 0, contrastRatio("#000000", "#2e2e2e") ?? 0);
+    expect(badge().textContent).toBe(`${worst.toFixed(1)}:1 ${worst >= 4.5 ? "✓" : "✗"}`);
+  });
+
+  it("saves a typed hex on Enter, normalized, for the active theme only", () => {
     const rig = mount({ settings: { colorOverrides: { [LIGHT.id]: { "--color-border": "#000000" } } } });
     fireEvent.change(hex("Border"), { target: { value: "F0A" } });
     expect(rig.updates).toEqual([]);
