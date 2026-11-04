@@ -107,9 +107,15 @@ var s = [
 	{
 		var: "--color-slider-fill",
 		label: "Controls / selection"
+	},
+	{
+		var: "--color-on-accent",
+		label: "Text — on accent",
+		text: !0,
+		against: ["--color-slider-fill", "--color-accent"]
 	}
-];
-function c(e) {
+], c = { "--color-on-accent": "#ffffff" };
+function l(e) {
 	let t = e.trim().replace(/^#/, "").toLowerCase();
 	return /^[0-9a-f]{3}$/.test(t) ? {
 		r: parseInt(t[0] + t[0], 16),
@@ -121,14 +127,14 @@ function c(e) {
 		b: parseInt(t.slice(4, 6), 16)
 	} : null;
 }
-function l(e) {
-	let t = c(e);
+function u(e) {
+	let t = l(e);
 	if (!t) return null;
 	let n = (e) => e.toString(16).padStart(2, "0");
 	return `#${n(t.r)}${n(t.g)}${n(t.b)}`;
 }
-function u(e) {
-	let t = c(e);
+function d(e) {
+	let t = l(e);
 	if (!t) return null;
 	let n = (e) => {
 		let t = e / 255;
@@ -136,14 +142,21 @@ function u(e) {
 	};
 	return .2126 * n(t.r) + .7152 * n(t.g) + .0722 * n(t.b);
 }
-function d(e, t) {
-	let n = u(e), r = u(t);
+function f(e, t) {
+	let n = d(e), r = d(t);
 	if (n == null || r == null) return null;
 	let i = Math.max(n, r), a = Math.min(n, r);
 	return (i + .05) / (a + .05);
 }
-function f() {
-	let n = t.registry.use((e) => e.themes), r = t.stores.useThemeStore((e) => e.activeId), a = t.stores.useSettings((e) => e.colorOverrides), o = n[r], c = o?.vars ?? {}, l = a[r] ?? {}, u = Object.keys(l).length > 0, f = (e) => l[e] ?? c[e] ?? "", m = f("--color-surface-1"), h = (e, n) => {
+function p(e) {
+	return u(getComputedStyle(document.documentElement).getPropertyValue(e)) ?? c[e] ?? "";
+}
+function m(e, t, n) {
+	let r = (t.length > 0 ? t : [n]).map((t) => f(e, t));
+	return r.some((e) => e == null) ? null : Math.min(...r);
+}
+function h() {
+	let n = t.registry.use((e) => e.themes), r = t.stores.useThemeStore((e) => e.activeId), a = t.stores.useSettings((e) => e.colorOverrides), o = n[r], c = o?.vars ?? {}, l = a[r] ?? {}, u = Object.keys(l).length > 0, d = (e) => l[e] ?? c[e] ?? p(e), f = d("--color-surface-1"), h = (e, n) => {
 		t.appSettings.update({ colorOverrides: {
 			...a,
 			[r]: {
@@ -151,7 +164,7 @@ function f() {
 				[e]: n
 			}
 		} });
-	}, g = (e) => {
+	}, _ = (e) => {
 		let n = { ...l };
 		delete n[e];
 		let i = { ...a };
@@ -163,48 +176,49 @@ function f() {
 			delete e[r], t.appSettings.update({ colorOverrides: e });
 		},
 		className: i.resetAll
-	}, "Reset all")), /* @__PURE__ */ e.createElement("p", { className: i.note }, "Retune any colour for the current theme. Each field starts at the theme's own value; edited colours override the theme (and high contrast) and are saved per theme. Text colours show their contrast against the panel background — aim for 4.5:1 or higher."), /* @__PURE__ */ e.createElement("div", { className: i.colorList }, s.map((t) => /* @__PURE__ */ e.createElement(p, {
+	}, "Reset all")), /* @__PURE__ */ e.createElement("p", { className: i.note }, "Retune any colour for the current theme. Each field starts at the theme's own value; edited colours override the theme (and high contrast) and are saved per theme. Text colours show their contrast against the panel background — aim for 4.5:1 or higher."), /* @__PURE__ */ e.createElement("div", { className: i.colorList }, s.map((t) => /* @__PURE__ */ e.createElement(g, {
 		key: t.var,
 		label: t.label,
-		value: f(t.var),
+		value: d(t.var),
 		overridden: l[t.var] != null,
-		contrast: t.text ? d(f(t.var), m) : null,
+		contrast: t.text ? m(d(t.var), (t.against ?? []).map(d), f) : null,
+		against: t.against ? "both fills it sits on" : "the panel background",
 		onSet: (e) => h(t.var, e),
-		onClear: () => g(t.var)
+		onClear: () => _(t.var)
 	})))) : null;
 }
-function p({ label: t, value: n, overridden: r, contrast: a, onSet: o, onClear: s }) {
-	let [c, u] = e.useState(n);
-	e.useEffect(() => u(n), [n]);
-	let d = l(n) ?? "#000000", f = (e) => {
-		let t = l(e);
-		t ? o(t) : u(n);
-	}, p = a != null && a >= 4.5;
+function g({ label: t, value: n, overridden: r, contrast: a, against: o, onSet: s, onClear: c }) {
+	let [l, d] = e.useState(n);
+	e.useEffect(() => d(n), [n]);
+	let f = u(n) ?? "#000000", p = (e) => {
+		let t = u(e);
+		t ? s(t) : d(n);
+	}, m = a != null && a >= 4.5;
 	return /* @__PURE__ */ e.createElement("div", { className: i.colorRow }, /* @__PURE__ */ e.createElement("span", {
 		className: i.colorLabel,
 		title: t
 	}, t), a != null && /* @__PURE__ */ e.createElement("span", {
-		className: `${i.contrast} ${p ? i.contrastPass : i.contrastFail}`,
-		title: "Contrast against the panel background (WCAG AA needs 4.5:1)"
-	}, a.toFixed(1), ":1 ", p ? "✓" : "✗"), /* @__PURE__ */ e.createElement("input", {
+		className: `${i.contrast} ${m ? i.contrastPass : i.contrastFail}`,
+		title: `Contrast against ${o} (WCAG AA needs 4.5:1)`
+	}, a.toFixed(1), ":1 ", m ? "✓" : "✗"), /* @__PURE__ */ e.createElement("input", {
 		type: "color",
-		value: d,
-		onChange: (e) => o(e.target.value),
+		value: f,
+		onChange: (e) => s(e.target.value),
 		"aria-label": `${t} colour picker`,
 		className: i.swatch
 	}), /* @__PURE__ */ e.createElement("input", {
 		type: "text",
-		value: c,
+		value: l,
 		spellCheck: !1,
-		onChange: (e) => u(e.target.value),
-		onBlur: (e) => f(e.target.value),
+		onChange: (e) => d(e.target.value),
+		onBlur: (e) => p(e.target.value),
 		onKeyDown: (e) => {
-			e.key === "Enter" && f(e.currentTarget.value);
+			e.key === "Enter" && p(e.currentTarget.value);
 		},
 		"aria-label": `${t} hex value`,
 		className: i.hex
 	}), /* @__PURE__ */ e.createElement("button", {
-		onClick: s,
+		onClick: c,
 		disabled: !r,
 		"aria-label": `Reset ${t} to the theme default`,
 		title: "Reset to theme default",
@@ -213,7 +227,7 @@ function p({ label: t, value: n, overridden: r, contrast: a, onSet: o, onClear: 
 }
 //#endregion
 //#region src/AccessibilitySettings.tsx
-var m = [
+var _ = [
 	{
 		value: "none",
 		label: "Off"
@@ -231,8 +245,8 @@ var m = [
 		label: "Tritanopia"
 	}
 ];
-function h() {
-	let { Field: n, OptionRow: r, ToggleField: a, useFieldVisible: o } = t.preferences.fields, { ScaleStepper: s } = t.components, c = t.stores.useSettings, l = t.appSettings.update, u = c((e) => e.syncOSAccessibility), d = c((e) => e.highContrast), p = c((e) => e.uiScale), h = c((e) => e.largerText), g = c((e) => e.largerControls), _ = c((e) => e.lowercaseHeadings), v = c((e) => e.strongFocus), y = c((e) => e.reduceTransparency), b = c((e) => e.colorVisionFilter), x = c((e) => e.keyboardCanvasEditing), S = c((e) => e.editingHighlights), C = c((e) => e.reduceMotion), w = o("Interface scale");
+function v() {
+	let { Field: n, OptionRow: r, ToggleField: a, useFieldVisible: o } = t.preferences.fields, { ScaleStepper: s } = t.components, c = t.stores.useSettings, l = t.appSettings.update, u = c((e) => e.syncOSAccessibility), d = c((e) => e.highContrast), f = c((e) => e.uiScale), p = c((e) => e.largerText), m = c((e) => e.largerControls), g = c((e) => e.lowercaseHeadings), v = c((e) => e.strongFocus), y = c((e) => e.reduceTransparency), b = c((e) => e.colorVisionFilter), x = c((e) => e.keyboardCanvasEditing), S = c((e) => e.editingHighlights), C = c((e) => e.reduceMotion), w = o("Interface scale");
 	return /* @__PURE__ */ e.createElement("div", { className: i.stack }, /* @__PURE__ */ e.createElement(a, {
 		label: "Match system accessibility settings",
 		hint: "Also apply your operating system's reduced-motion, increased-contrast and reduced-transparency preferences. The options below add to these — they never switch a system preference back off. (Windows High Contrast mode is always respected.)",
@@ -244,23 +258,23 @@ function h() {
 		checked: d,
 		onChange: (e) => l({ highContrast: e })
 	}), /* @__PURE__ */ e.createElement("div", null, /* @__PURE__ */ e.createElement(n, { label: "Interface scale" }, /* @__PURE__ */ e.createElement(s, {
-		value: p,
+		value: f,
 		onChange: (e) => l({ uiScale: e }),
 		label: "Interface scale"
 	})), w && /* @__PURE__ */ e.createElement("p", { className: i.note }, "Enlarges the whole interface — text included — up to 200%. The same control lives under Interface ▸ Interface scale.")), /* @__PURE__ */ e.createElement(a, {
 		label: "Larger text",
 		hint: "Enlarge the smallest labels and drop their all-caps styling so they read as words — without scaling the rest of the interface. Best for cramped labels; it can reflow tight rows.",
-		checked: h,
+		checked: p,
 		onChange: (e) => l({ largerText: e })
 	}), /* @__PURE__ */ e.createElement(a, {
 		label: "Larger controls",
 		hint: "Grow buttons and inputs to a comfortable minimum size (≥24px) for easier pointing. Can loosen dense toolbars.",
-		checked: g,
+		checked: m,
 		onChange: (e) => l({ largerControls: e })
 	}), /* @__PURE__ */ e.createElement(a, {
 		label: "Lowercase headings",
 		hint: "Show the all-caps section headings in Title Case (capitalise the first letter of each word) instead of UPPERCASE, which is harder to read at a glance.",
-		checked: _,
+		checked: g,
 		onChange: (e) => l({ lowercaseHeadings: e })
 	}), /* @__PURE__ */ e.createElement(a, {
 		label: "Strong focus indicator",
@@ -277,7 +291,7 @@ function h() {
 		hint: "Filters the whole window so you can check how the interface and your photo read to colour-blind viewers. This recolours the image too — turn it off for colour-critical editing."
 	}, /* @__PURE__ */ e.createElement(r, {
 		value: b,
-		options: m,
+		options: _,
 		onChange: (e) => l({ colorVisionFilter: e })
 	})), /* @__PURE__ */ e.createElement(a, {
 		label: "Keyboard canvas editing",
@@ -294,27 +308,27 @@ function h() {
 		hint: "Minimize animated UI affordances.",
 		checked: C,
 		onChange: (e) => l({ reduceMotion: e })
-	}), /* @__PURE__ */ e.createElement(f, null));
+	}), /* @__PURE__ */ e.createElement(h, null));
 }
 //#endregion
 //#region src/index.tsx
-var g = "safelight.accessibility.styles", _ = /* @__PURE__ */ "a11y.wcag.contrast.vision.colour blind.color blind.colorblind.protanopia.deuteranopia.tritanopia.focus.zoom.magnify.scale.legible.readable.text size.font size.uppercase.caps.hit target.transparency.opacity.motion.system.os.prefers.forced colors.high contrast mode.keyboard".split(".");
-function v(e) {
+var y = "safelight.accessibility.styles", b = /* @__PURE__ */ "a11y.wcag.contrast.vision.colour blind.colour blind.colorblind.protanopia.deuteranopia.tritanopia.focus.zoom.magnify.scale.legible.readable.text size.font size.uppercase.caps.hit target.transparency.opacity.motion.system.os.prefers.forced colours.high contrast mode.keyboard".split(".");
+function x(e) {
 	n(e), e.accessibility.activate(), e.registerStylesheet({
-		id: g,
+		id: y,
 		css: o(e.ui.tokens)
 	}), e.registerSettings({
 		title: "Accessibility",
 		order: 0,
 		fields: [],
-		component: h,
-		keywords: _
+		component: v,
+		keywords: b
 	});
 }
-function y() {
+function S() {
 	t.accessibility.deactivate();
 }
 //#endregion
-export { _ as SETTINGS_KEYWORDS, g as STYLESHEET_ID, v as activate, y as deactivate };
+export { b as SETTINGS_KEYWORDS, y as STYLESHEET_ID, x as activate, S as deactivate };
 
 //# sourceMappingURL=index.js.map

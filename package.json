@@ -1,7 +1,7 @@
 {
   "name": "safelight-accessibility",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Accessibility extension for Safelight: high contrast, colour-vision simulation, larger text and controls, reduced motion and transparency, and custom colours.",
   "type": "module",
   "scripts": {

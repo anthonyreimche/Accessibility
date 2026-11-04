@@ -4,7 +4,7 @@
 // be preserved in derived versions.
 
 // The Accessibility section of Preferences ▸ Extensions. It reads and writes
-// the app settings and is built from the dialog's search-aware field
+// the app settings and is built from the dialogue's search-aware field
 // primitives; core's accessibility engine applies the overlays it drives.
 
 import { ColorOverrides } from "./ColorOverrides";
