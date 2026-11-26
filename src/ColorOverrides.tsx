@@ -15,6 +15,9 @@ import { React, api } from "./rt";
 import { CLASSES } from "./styles";
 
 /** A text field's contrast is measured against `against` (worst of them), else the panel background. */
+const NOTE =
+  "Retune any colour for the current theme. Each field starts at the theme's own value; edited colours override the theme (and high contrast) and are saved per theme. Text colours show their contrast against the panel background: aim for 4.5:1 or higher.";
+
 export const OVERRIDE_FIELDS: { var: string; label: string; text?: boolean; against?: string[] }[] = [
   { var: "--color-surface-0", label: "Background — base" },
   { var: "--color-surface-1", label: "Background — panels" },
@@ -99,6 +102,7 @@ function worstContrast(text: string, fills: string[], panel: string): number | n
 }
 
 export function ColorOverrides() {
+  const { Button } = api.ui;
   const themes = api.registry.use((s) => s.themes);
   const activeId = api.stores.useThemeStore((s) => s.activeId);
   const overridesAll = api.stores.useSettings((s) => s.colorOverrides);
@@ -135,19 +139,13 @@ export function ColorOverrides() {
   return (
     <div>
       <div className={CLASSES.colorsHeader}>
-        <span className={CLASSES.colorsTitle}>Custom colours — {theme.name}</span>
+        <span className={CLASSES.colorsTitle} title={NOTE}>Custom colours — {theme.name}</span>
         {anyOverridden && (
-          <button onClick={resetAll} className={CLASSES.resetAll}>
+          <Button size="sm" onClick={resetAll}>
             Reset all
-          </button>
+          </Button>
         )}
       </div>
-      <p className={CLASSES.note}>
-        Retune any colour for the current theme. Each field starts at the theme's
-        own value; edited colours override the theme (and high contrast) and are
-        saved per theme. Text colours show their contrast against the panel
-        background — aim for 4.5:1 or higher.
-      </p>
       <div className={CLASSES.colorList}>
         {OVERRIDE_FIELDS.map((f) => (
           <ColorRow
@@ -183,6 +181,7 @@ function ColorRow({
   onSet: (hex: string) => void;
   onClear: () => void;
 }) {
+  const { Button, TextInput } = api.ui;
   // Local text so intermediate/invalid typing doesn't fight the controlled value;
   // commit only valid hex, revert to the effective value on blur if invalid.
   const [text, setText] = React.useState(value);
@@ -216,27 +215,27 @@ function ColorRow({
         aria-label={`${label} colour picker`}
         className={CLASSES.swatch}
       />
-      <input
-        type="text"
+      <TextInput
         value={text}
         spellCheck={false}
-        onChange={(e) => setText(e.target.value)}
+        onChange={setText}
         onBlur={(e) => commit(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter") commit(e.currentTarget.value);
         }}
         aria-label={`${label} hex value`}
-        className={CLASSES.hex}
+        style={{ width: 68, textAlign: "right" }}
       />
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={onClear}
         disabled={!overridden}
         aria-label={`Reset ${label} to the theme default`}
         title="Reset to theme default"
-        className={CLASSES.clear}
       >
         ↺
-      </button>
+      </Button>
     </div>
   );
 }

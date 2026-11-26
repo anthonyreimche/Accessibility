@@ -47,9 +47,6 @@ describe("activate", () => {
     expect(rig.stylesheets.map((s) => s.id)).toEqual([STYLESHEET_ID]);
     const css = rig.stylesheets[0].css;
     expect(css).toContain(`:where(.${CLASSES.note}) { margin-top: 0.25rem; font-size: 10px; line-height: 1.625; color: var(--color-text-muted); }`);
-    expect(css).toContain(`:where(.${CLASSES.resetAll}:hover) { background-color: var(--color-surface-3); color: var(--color-text-primary); }`);
-    expect(css).toContain(`:where(.${CLASSES.hex}:focus) { background-color: var(--color-surface-3); }`);
-    expect(css).toContain(`:where(.${CLASSES.clear}:disabled) { opacity: 0.25; }`);
     expect(css).toContain("border: 1px solid var(--color-border)");
   });
 

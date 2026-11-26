@@ -11,7 +11,7 @@
 // so the host's source is not on the type path; React types come from
 // @types/react (dev only).
 
-import type { ComponentType, ReactNode } from "react";
+import type { ButtonHTMLAttributes, ComponentType, InputHTMLAttributes, ReactNode } from "react";
 
 export interface StoreApi<T> {
   (): T;
@@ -136,6 +136,22 @@ export interface PreferenceFields {
   useFieldVisible(label: string, hint?: string): boolean;
 }
 
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: ButtonVariant;
+  size?: "sm" | "md";
+  /** Render as the selected/active state (accent fill), overriding the variant. */
+  active?: boolean;
+  /** Stretch to the container width. */
+  full?: boolean;
+}
+
+export interface TextInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "onChange" | "value"> {
+  value: string;
+  onChange: (value: string) => void;
+}
+
 export interface SafelightAPI {
   version: 1;
   extensionId: string;
@@ -147,7 +163,11 @@ export interface SafelightAPI {
      *  between 80% and 200%. */
     ScaleStepper: ComponentType<ScaleStepperProps>;
   };
-  ui: { tokens: UiTokens };
+  ui: {
+    tokens: UiTokens;
+    Button: (props: ButtonProps) => JSX.Element;
+    TextInput: (props: TextInputProps) => JSX.Element;
+  };
   stores: {
     useSettings: StoreApi<AppSettings>;
     useThemeStore: StoreApi<ThemeState>;

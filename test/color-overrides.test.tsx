@@ -40,6 +40,13 @@ describe("hex helpers", () => {
 });
 
 describe("ColorOverrides", () => {
+  it("builds its text fields and reset buttons from the app's controls", () => {
+    mount();
+    expect(hex("Border").dataset.kit).toBe("text-input");
+    expect(clear("Border").dataset.kit).toBe("button");
+    expect(picker("Border").dataset.kit).toBeUndefined();
+  });
+
   it("lists every token for the active theme, starting at the theme's values", () => {
     mount();
     expect(screen.getByText("Custom colours — Safelight Neutral").className).toBe(CLASSES.colorsTitle);
@@ -110,7 +117,7 @@ describe("ColorOverrides", () => {
     });
     expect(hex("Border").value).toBe("#ff00aa");
     expect(clear("Border").disabled).toBe(false);
-    expect(screen.getByRole("button", { name: "Reset all" }).className).toBe(CLASSES.resetAll);
+    expect(screen.getByRole("button", { name: "Reset all" }).dataset.kit).toBe("button");
   });
 
   it("saves a typed hex on blur and reverts an invalid one", () => {

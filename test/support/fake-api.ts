@@ -21,6 +21,8 @@ import type {
   StylesheetContribution,
   ThemeState,
   ToggleFieldProps,
+  ButtonProps,
+  TextInputProps,
   UiTokens,
 } from "../../src/safelight";
 
@@ -36,6 +38,14 @@ export const TOKENS: UiTokens = {
   labelRed: "var(--color-label-red)",
   labelGreen: "var(--color-label-green)",
 };
+
+function Button({ variant, size, active, full, ...rest }: ButtonProps) {
+  return h("button", { type: "button", "data-kit": "button", "data-variant": variant, "data-size": size, ...rest });
+}
+
+function TextInput({ value, onChange, ...rest }: TextInputProps) {
+  return h("input", { type: "text", "data-kit": "text-input", value, onChange: (e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value), ...rest });
+}
 
 export const DEFAULT_SETTINGS: AppSettings = {
   uiScale: 1,
@@ -190,7 +200,7 @@ export function fakeApi({
     registerSettings: (c) => void settingsSections.push(c),
     registerStylesheet: (c) => void stylesheets.push(c),
     components: { ScaleStepper },
-    ui: { tokens: TOKENS },
+    ui: { tokens: TOKENS, Button, TextInput },
     stores: { useSettings: settings, useThemeStore: theme },
     registry: { use: (selector) => registry(selector) },
     appSettings: {
